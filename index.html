@@ -57,6 +57,27 @@ html { scrollbar-gutter: stable; }
 @media (max-width: 1100px) { .search { flex-basis: 150px; } .home { padding: 0 10px 0 8px; } .seg { gap: 0; } .top-in { gap: 10px 8px; } .brand span:not(.ver) { display: none; } }
 .search input { width: 100%; height: 40px; border: 1.5px solid #8FA19A; box-shadow: 0 1px 3px rgba(18,33,29,.10); border-radius: 8px; padding: 0 14px; background: var(--surface); font: inherit; color: var(--ink); }
 .search input::placeholder { color: var(--ink-3); }
+/* 검색 이동 */
+.search { position: relative; }
+.sbar { position: absolute; right: 0; top: calc(100% + 8px); z-index: 40; width: min(430px, calc(100vw - 24px)); background: #fff; border: 1.5px solid var(--line); border-radius: 14px; box-shadow: 0 12px 32px rgba(18,33,29,.18); padding: 10px 12px; }
+.sbar[hidden] { display: none; }
+.sb-row { display: flex; align-items: center; gap: 8px; }
+.sb-n { font: 800 18px var(--font-num); min-width: 62px; white-space: nowrap; }
+.sb-l { flex: 1; min-width: 0; font-size: 13px; color: var(--ink-2); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sb-btn { width: 34px; height: 34px; flex: none; border-radius: 9px; border: 1.5px solid var(--line); background: #fff; display: grid; place-items: center; padding: 0; }
+.sb-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+.sb-btn:disabled { opacity: .35; cursor: default; }
+.sb-btn svg { width: 16px; height: 16px; fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.sb-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.sb-chips:empty { display: none; }
+.sb-chip { border: 1.5px solid var(--line); background: #fff; border-radius: 99px; padding: 3px 10px; font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
+.sb-chip b { margin-left: 6px; font-family: var(--font-num); color: var(--accent); }
+.sb-chip:hover { border-color: var(--accent); }
+.sb-chip[aria-current="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+.sb-chip[aria-current="true"] b { color: #fff; }
+.cur { outline: 3px solid #F2A63B; outline-offset: 3px; box-shadow: 0 0 0 8px rgba(242,166,59,.22); }
+.cur.dim, .m-item.cur.dim, .row.cur.dim, .tile.cur.dim { opacity: 1; }
+
 
 /* icons */
 .ico { display: inline-flex; width: var(--s, 48px); height: var(--s, 48px); flex: none; }
@@ -479,7 +500,7 @@ button.v-hb em { font-style: normal; font-family: var(--font-num); font-weight: 
 </style>
 
 <div class="top"><div class="wrap top-in">
-  <div class="brand"><b>BYTULZ</b><span>CX 프로토콜</span><span class="ver">V0.17</span></div>
+  <div class="brand"><b>BYTULZ</b><span>CX 프로토콜</span><span class="ver">V0.18</span></div>
   <button class="home" id="b-home" aria-label="홈 (초기 화면)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-5h4v5"/></svg>홈</button>
   <div class="seg" role="tablist" aria-label="메뉴">
     <button role="tab" data-v="c" aria-selected="true">프로토콜</button>
@@ -489,14 +510,22 @@ button.v-hb em { font-style: normal; font-family: var(--font-num); font-weight: 
     <button role="tab" data-v="cs" aria-selected="false">상담 응대</button>
     <button role="tab" data-v="voc" aria-selected="false">바이툴즈 VOC</button>
   </div>
-  <div class="search"><input id="q" type="search" placeholder="검색 (예: 소음, 누수, E001)" aria-label="이슈 검색" autocomplete="off"></div>
+  <div class="search"><input id="q" type="search" placeholder="검색 (예: 소음, 베란다, E001)" aria-label="이슈 검색" title="Enter: 다음 결과 · Shift+Enter: 이전 결과" autocomplete="off">
+    <div class="sbar" id="sbar" hidden role="status" aria-live="polite">
+      <div class="sb-row"><b class="sb-n" id="sb-n"></b><span class="sb-l" id="sb-l"></span>
+        <button class="sb-btn" id="sb-p" aria-label="이전 결과" title="이전 (Shift+Enter)"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+        <button class="sb-btn" id="sb-x" aria-label="다음 결과" title="다음 (Enter)"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+        <button class="sb-btn" id="sb-c" aria-label="검색 닫기" title="닫기 (Esc)"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="sb-chips" id="sb-chips"></div>
+    </div>
+  </div>
 </div></div>
 
 <div class="wrap">
   <div id="vC" class="stage-wrap"><div class="stage" id="stageC"></div></div>
   <div id="vM" class="stage-wrap" hidden><div class="stage" id="stageM"></div></div>
   <div id="vV" class="stage-wrap" hidden><div class="stage" id="stageV"></div></div>
-  <div class="foot"><span>BYTULZ CX 프로토콜 V0.17</span><span>규정 열람용 화면입니다. 기록이나 진행 현황은 저장하지 않습니다.</span></div>
+  <div class="foot"><span>BYTULZ CX 프로토콜 V0.18</span><span>규정 열람용 화면입니다. 기록이나 진행 현황은 저장하지 않습니다.</span></div>
 </div>
 
 <script>
@@ -818,14 +847,19 @@ function goTab(t) {
   state.cat = state.last[t] || SECS[t][0]; view("m");
 }
 function openDetail(id) { state.view = "c"; view("c", true); renderDetail(id); }
+function pText(t) { return (t._tx = t._tx || (t.title + " " + t.tags + " " + t.trigger + " " + (t.result || "")).toLowerCase()); }
 function applyFilter() {
   var v = $("#q").value.trim().toLowerCase();
-  $$(".row,.tile").forEach(function (el) { var t = byId(el.dataset.id), hit = !v || (t.title + " " + t.tags + " " + t.trigger).toLowerCase().indexOf(v) > -1; el.classList.toggle("dim", !hit); });
+  $$(".row,.tile").forEach(function (el) { el.classList.toggle("dim", !!v && pText(byId(el.dataset.id)).indexOf(v) < 0); });
 }
 
 document.addEventListener("click", function (e) {
   var mc = e.target.closest(".m-cat"); if (mc) { state.cat = mc.dataset.cat; renderManual(); return; }
-  if (e.target.closest("#b-home")) { $("#q").value = ""; state.detail = null; view("c"); return; }
+  if (e.target.closest("#b-home")) { $("#q").value = ""; SG.q = ""; SG.hits = []; SG.i = -1; sBar(); state.detail = null; view("c"); return; }
+  if (e.target.closest("#sb-x")) { sGo(SG.i + 1); return; }
+  if (e.target.closest("#sb-p")) { sGo(SG.i - 1); return; }
+  if (e.target.closest("#sb-c")) { $("#q").value = ""; sSearch(); return; }
+  var sc = e.target.closest(".sb-chip"); if (sc) { for (var j = 0; j < SG.hits.length; j++) if (SG.hits[j].s === sc.dataset.s) { sGo(j); break; } return; }
   var b = e.target.closest(".seg button"); if (b) { goTab(b.dataset.v); return; }
   var op = e.target.closest("[data-open]"); if (op) { openDetail(op.dataset.open); return; }
   var r = e.target.closest(".row,.tile"); if (r) { openDetail(r.dataset.id); return; }
@@ -840,7 +874,67 @@ document.addEventListener("keydown", function (e) {
   if ((e.key === "Enter" || e.key === " ") && e.target.classList && e.target.classList.contains("row")) { e.preventDefault(); openDetail(e.target.dataset.id); }
   if (e.key === "Escape" && state.view === "c" && state.detail) showC();
 });
-$("#q").addEventListener("input", function () { if (state.view === "m") { manualSearch(); return; } if (state.view === "v") return; if (state.view === "c" && state.detail) { state.detail = null; view("c"); } applyFilter(); });
+/* ---------- 검색 결과 이동 (N / M, 이전·다음) ---------- */
+var SG = { q: "", hits: [], i: -1 }, SLAB = { c: "프로토콜", tr: "트러블슈팅", gd: "사용 가이드", vid: "튜토리얼 영상", cs: "상담 응대" }, SORD = ["err", "sym", "food", "use", "info", "vid", "intake", "contact"], sT;
+function curSec() { return state.view === "c" ? "c" : state.view === "m" ? secOf(state.cat) : "voc"; }
+function sHits(q) {
+  var out = [];
+  TYPES.forEach(function (t) { if (pText(t).indexOf(q) > -1) out.push({ s: "c", id: t.id }); });
+  SORD.forEach(function (id) {
+    var n = 0; mItems(id).forEach(function (tx, k) { if (tx.indexOf(q) > -1) { out.push({ s: secOf(id), cat: id, k: k }); n++; } });
+    if (!n && mText(id).indexOf(q) > -1) out.push({ s: secOf(id), cat: id, k: -1 });
+  });
+  return out;
+}
+function sLabel(h) { return h.s === "c" ? "프로토콜 › " + byId(h.id).title : SLAB[h.s] + " › " + mcat(h.cat).name; }
+function sBar() {
+  var b = $("#sbar"); if (!SG.q) { b.hidden = true; return; }
+  var n = SG.hits.length, cnt = {}, cs = curSec();
+  b.hidden = false;
+  $("#sb-n").textContent = n ? (SG.i + 1) + " / " + n : "결과 없음";
+  $("#sb-l").textContent = n ? sLabel(SG.hits[SG.i]) : "다른 키워드로 검색해 보세요";
+  $("#sb-p").disabled = $("#sb-x").disabled = !n;
+  SG.hits.forEach(function (h) { cnt[h.s] = (cnt[h.s] || 0) + 1; });
+  $("#sb-chips").innerHTML = ["c", "tr", "gd", "vid", "cs"].filter(function (k) { return cnt[k]; }).map(function (k) {
+    return '<button class="sb-chip" data-s="' + k + '"' + (n && SG.hits[SG.i].s === k ? ' aria-current="true"' : "") + ">" + SLAB[k] + "<b>" + cnt[k] + "</b></button>";
+  }).join("");
+}
+function sDim() { if (state.view === "m") renderManual(); else if (state.view === "c") { if (state.detail && SG.q) { state.detail = null; view("c"); } applyFilter(); } }
+function sGo(i) {
+  var n = SG.hits.length; if (!n) return;
+  SG.i = (i % n + n) % n;
+  var h = SG.hits[SG.i], el = null;
+  $$(".cur").forEach(function (e) { e.classList.remove("cur"); });
+  if (h.s === "c") {
+    if (state.view !== "c") view("c", true);
+    if (state.detail) showC(); else applyFilter();
+    el = $('#stageC .row[data-id="' + h.id + '"]') || $('#stageC .tile[data-id="' + h.id + '"]');
+  } else {
+    state.cat = h.cat;
+    if (state.view !== "m") view("m", true); else renderManual();
+    if (h.k >= 0) {
+      el = $$("#stageM .m-item")[h.k];
+    } else el = $("#stageM .m-panel");
+  }
+  if (el) { el.classList.add("cur"); el.scrollIntoView({ block: "center" }); }
+  sBar();
+}
+function sSearch() {
+  clearTimeout(sT); sT = 0;
+  var q = $("#q").value.trim().toLowerCase();
+  SG.q = q;
+  if (!q) { SG.hits = []; SG.i = -1; $$(".cur").forEach(function (e) { e.classList.remove("cur"); }); sDim(); sBar(); return; }
+  SG.hits = sHits(q);
+  if (!SG.hits.length) { sDim(); sBar(); return; }
+  var cs = curSec(), st = 0;
+  for (var j = 0; j < SG.hits.length; j++) if (SG.hits[j].s === cs) { st = j; break; }
+  sGo(st);
+}
+$("#q").addEventListener("input", function () { clearTimeout(sT); sT = setTimeout(sSearch, 120); });
+$("#q").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") { e.preventDefault(); if (sT || SG.q !== this.value.trim().toLowerCase()) { sSearch(); return; } sGo(SG.i + (e.shiftKey ? -1 : 1)); }
+  else if (e.key === "Escape" && this.value) { this.value = ""; sSearch(); }
+});
 var rz; window.addEventListener("resize", function () { clearTimeout(rz); rz = setTimeout(fitStage, 100); });
 
 /* ---------- manual (제품 매뉴얼) ---------- */
@@ -855,7 +949,7 @@ ICONS.info = '<circle class="f" cx="32" cy="32" r="24"/><path d="M32 29v15"/><ci
 
 var MCATS = [
   { id: "err", ico: "alert", name: "에러코드", sub: "E001~E003와 건조통 인식 에러, 리셋 방법" },
-  { id: "sym", ico: "wrench", name: "증상별 해결", sub: "작동, 처리 품질, 냄새, 표시 증상과 정상 현상" },
+  { id: "sym", ico: "wrench", name: "증상별 해결", sub: "작동, 처리 품질, 냄새, 표시 증상, 설치·기능 문의" },
   { id: "food", ico: "leaf", name: "투입 음식물", sub: "금지, 주의, 가능 음식물 구분" },
   { id: "use", ico: "drop", name: "사용·관리·설치", sub: "기본 사용, 세척, 필터 교체, 편의 기능, 설치 공간" },
   { id: "info", ico: "info", name: "제품 정보", sub: "스펙, 제품 특징, 정품 등록, 보조금 서류" },
@@ -882,9 +976,10 @@ var SYMS = [
     ["도어가 닫히지 않음", "음식물이 한계선 초과", "fix", "양을 줄여 MAX선 이내로 투입"],
     ["작동 중 딱딱 소리", "내부 음식물이 굳었거나 딱딱한 물질이 있음", "fix", "딱딱한 물질을 제거한 뒤 사용"] ] },
   { g: "처리 품질", i: "gear", r: [
-    ["음식물이 질척하게 떡처럼 나옴", "뚜껑 안쪽 스테인리스 커버와 상부 흡입구 사이에 단차가 생겨 수증기가 빠져나가지 못함", "fix", "스테인리스 커버 고무패킹을 꾹 눌러 닫혔는지, 건조통 장착, 필터 상하단 스티커 제거를 확인한 뒤 재가동"],
+    ["음식물이 질척하게 떡처럼 나옴", "뚜껑 안쪽 스테인리스 커버와 상부 흡입구 사이에 단차가 생겨 수증기가 빠져나가지 못함", "fix", "스테인리스 커버 고무패킹을 꾹 눌러 닫혔는지, 건조통 장착, 필터 상하단 스티커 제거를 확인한 뒤 재가동. 사과 껍질처럼 수분이 많은 재료는 내용물을 비우지 말고 연속으로 한 번 더 가동 (물기를 짜서 넣으면 시간 단축)"],
     ["건조가 제대로 안 됨", "수분·기름기 과다, 필터 수명 만료", "fix", "[동작/정지]를 한 번 더 눌러 재처리, 필터 교체 시기 확인"],
     ["음식물이 뭉쳐서 나옴", "전분·당분·섬유질 다량 투입", "ok", "여러 음식물을 섞어 투입, 뭉쳤으면 코스 재진행"],
+    ["가루가 아니라 낙엽처럼 바스라지거나 굵게 남음", "양배추·파프리카·옥수수 껍질·대파 같은 섬유질은 말린 낙엽 형태가 되고, 투입량이 너무 적으면 입자가 굵게 남음 (탄수화물만 넣으면 뭉침 심함)", "ok", "제품 이상이 아닌 정상 처리 과정으로 안내. 여러 음식물을 섞어 충분한 양을 넣도록 안내"],
     ["결과물이 굳어 안 떨어짐", "건조통 안에 이물질이 고착됨", "fix", "물을 넣고 세척 모드로 불린 뒤 제거"],
     ["소음이 심함", "굳은 음식물로 모터에 부하", "fix", "굳은 음식물 제거 또는 세척 모드 후 재가동"] ] },
   { g: "냄새·외관", i: "flame", r: [
@@ -892,14 +987,24 @@ var SYMS = [
     ["수증기가 많이 나옴", "수분 배기 (정상 현상)", "ok", "정상. 옆 15cm·위 60cm 공간 확보 재확인"],
     ["필터 커버에 물방울", "처리 중 수분 발생 (정상 현상)", "ok", "처리 후 자연 증발. 이상 아님"],
     ["본체 안쪽이 하얘짐", "백화 현상 (미네랄 성분 기화)", "ok", "정상. 행주로 가볍게 닦기"],
-    ["내부 코팅이 벗겨짐", "소모성 자연 마모", "ok", "경미하면 건조 성능에 영향 없음. 코팅 불량으로 확인되면 건조통 교환 진행 (정해진 교체 주기는 없음)"] ] },
+    ["내부 코팅이 벗겨짐", "건조통은 소모품이며 코팅 손상은 소모성 자연 마모 (불량 아님)", "ok", "경미하면 건조 성능에 영향 없음. 코팅 불량으로 확인되면 건조통 교환 진행 (정해진 교체 주기는 없음)"] ] },
   { g: "표시·기타", i: "alert", r: [
     ["디스플레이가 깜빡임", "건조통 미체결", "fix", "건조통 체결 확인. 지속되면 건조통 인식 에러 (에러코드 참고)"],
     ["에러코드가 켜짐", "에러 발생", "fix", "트러블슈팅의 에러코드에서 코드별 자가 조치 확인"],
     ["대기 중인데 소리가 남", "배기팬과 회전날이 주기적으로 작동 (30분마다)", "ok", "정상 동작. 이상 아님"],
-    ["처리 중 연기가 남", "건조 과정의 수분 배출 (수증기)", "ok", "정상. 환기 공간 확보 권장"] ] }
+    ["처리 중 연기가 남", "건조 과정의 수분 배출 (수증기)", "ok", "정상. 환기 공간 확보 권장"] ] },
+  { g: "설치·사용 문의", i: "drop", r: [
+    ["베란다·다용도실에 설치해도 되는지 문의", "온도차가 큰 곳은 히터 오류와 고장의 원인이 됨", "gd", "권장하지 않는다고 안내. 앞·뒤·양옆 15cm 이상, 위 60cm 이상 확보되는 통풍 좋은 실내에 설치하도록 안내"],
+    ["코드를 계속 꽂아 둬도 되는지 문의", "미사용 시 절전 기능이 작동하지만 내부 팬은 계속 동작", "gd", "상시 연결해도 무방. 장기간 쓰지 않을 때는 전원 분리를 권장"],
+    ["작동 중에 전원을 꺼도 되는지 문의", "제품에 문제는 없으나 내부가 덜 마르면 냄새나 수분이 남을 수 있음", "gd", "내부 건조와 공기 순환을 위해 가능하면 전원을 연결한 채 사용을 마치도록 안내"],
+    ["하루에 몇 번까지 쓸 수 있는지 문의", "횟수 제한은 없음", "gd", "위생과 제품 상태를 위해 1~2회 사용 권장으로 안내"],
+    ["작동 중에 음식물을 더 넣어도 되는지 문의", "작동 중 투입은 가능하지만 식힘 단계(HOT LED 점등)에서는 처리되지 않음", "gd", "식힘 단계에서 넣은 음식물은 다음 가동 때 처리됨을 안내. 시작 약 3시간 이후에는 추가 투입하지 않음"] ] },
+  { g: "편의 기능 문의", i: "power", r: [
+    ["보관 모드를 켜 두면 냄새가 정말 안 나는지 문의", "내부 공기를 순환해 부패 냄새를 최소화하는 기능이며 무취는 아님", "gd", "장시간 보관하면 냄새가 날 수 있으니 가급적 빠른 처리를 권장"],
+    ["보관 모드로 계속 켜 두면 전기요금이 많이 나오는지 문의", "팬 순환 중심의 저전력 동작", "gd", "일반 작동보다 전력 소모가 낮은 편이라고 안내"],
+    ["음소거하면 완전 무음인지 문의", "동작 알림음만 꺼지고 기계 작동 소음은 일부 발생", "gd", "음소거 해제는 [자동세척] 버튼을 3초 누르면 됨"] ] }
 ];
-var VD = { ok: ["정상", "k-ok"], fix: ["조치", "k-fix"], as: ["AS", "k-as"] };
+var VD = { ok: ["정상", "k-ok"], fix: ["조치", "k-fix"], as: ["AS", "k-as"], gd: ["안내", "k-nv"] };
 
 function attr(u) { return u.replace(/&/g, "&amp;"); }
 function cpb(u) { return '<button class="copy" data-copy="' + attr(u) + '" aria-label="URL 복사">URL 복사</button>'; }
@@ -934,7 +1039,7 @@ function vErr() {
   return h + "</div></div>" + vRel(["ni8EpJCxX2U"]);
 }
 function vSym() {
-  var h = mHead("증상별 해결", "증상을 찾아 원인과 조치를 확인합니다", '<div class="lg"><span class="m-badge k-ok">정상 현상</span><span class="m-badge k-fix">자가 조치</span><span class="m-badge k-as">AS</span></div>');
+  var h = mHead("증상별 해결", "증상을 찾아 원인과 조치를 확인합니다", '<div class="lg"><span class="m-badge k-ok">정상 현상</span><span class="m-badge k-fix">자가 조치</span><span class="m-badge k-nv">안내</span><span class="m-badge k-as">AS</span></div>');
   h += '<div class="m-groups">' + SYMS.map(function (g) {
     return '<div class="m-group"><div class="gh">' + ic(g.i, 28) + g.g + "<small>" + g.r.length + "개 증상</small></div>" + g.r.map(function (r) {
       return '<div class="m-row m-item"><div class="sy"><b>' + r[0] + "</b><span>" + r[1] + '</span></div><div class="fx"><span class="m-badge ' + VD[r[2]][1] + '">' + VD[r[2]][0] + "</span><span>" + r[3] + "</span></div></div>";
@@ -951,7 +1056,7 @@ function vFood() {
   h += '<div class="m-col" style="--bc:var(--r-cu)"><div class="mch"><b>넣으면 안 됨</b><span>일반 쓰레기로 분리 배출</span></div><div class="cb">' + no.map(function (x) { return '<div class="m-fi m-item"><b>' + x[0] + "</b><span>" + x[1] + "</span></div>"; }).join("") + "</div></div>";
   h += '<div class="m-col" style="--bc:var(--r-kh)"><div class="mch"><b>방법을 지켜 넣기</b><span>투입은 가능하지만 방법을 지켜야 함</span></div><div class="cb">' + care.map(function (x) { return '<div class="m-fi m-item"><b>' + x[0] + "</b><span>" + x[1] + "</span><em>" + x[2] + "</em></div>"; }).join("") + "</div></div>";
   h += '<div class="m-col" style="--bc:var(--r-ub)"><div class="mch"><b>넣어도 됨</b><span>일반적인 음식물 쓰레기</span></div><div class="cb">' + yes.map(function (x) { return '<div class="m-fi m-item"><b>' + x[0] + "</b><span>" + x[1] + "</span></div>"; }).join("") + "</div></div></div>";
-  h += '<div class="m-note">' + ic("alert", 38) + "<div><b>잘못된 투입은 E001의 가장 큰 원인입니다.</b> 투입 금지 품목 때문에 고장 나면 보증기간 안이라도 유상 수리로 진행됩니다.</div></div>";
+  h += '<div class="m-note m-item">' + ic("alert", 38) + "<div><b>잘못된 투입은 E001의 가장 큰 원인입니다.</b> 투입 금지 품목 때문에 고장 나면 보증기간 안이라도 유상 수리로 진행됩니다.</div></div>";
   return h;
 }
 function stepsHtml(a) { return '<div class="m-sts">' + a.map(function (s, i) { return '<div class="m-st"><i>' + (i + 1) + "</i><b>" + s[0] + "</b><span>" + s[1] + "</span></div>"; }).join("") + "</div>"; }
@@ -966,18 +1071,18 @@ function clearIllus() {
 function vUse() {
   var h = mHead("사용·관리·설치", "처음 쓰는 고객에게 안내하는 순서입니다");
   h += '<div class="m-two" style="grid-template-columns:minmax(0,1fr) 360px"><div>';
-  h += '<div class="m-block"><h3>' + ic("product", 30) + '기본 사용<small>처리 시간 보통 3~5시간</small></h3>' + stepsHtml([["투입", "도어를 열고 건조통 MAX선 아래로 넣기"], ["장착", "건조통 △를 기기 표시에 맞추고 MAX 글자가 앞을 보게 삽입"], ["시작", "도어를 닫고 [동작/정지] 터치"], ["완료", "HOT 표시가 꺼지면 꺼내서 배출 (직후는 뜨거우니 화상 주의)"]]) + '<div class="m-tip"><span class="m-badge k-nv">참고</span>동작 중 추가 투입은 OPEN 버튼 후 가능하지만, 시작 약 3시간 이후에는 하지 않습니다.</div></div>';
-  h += '<div class="m-block"><h3>' + ic("drop", 30) + '세척 모드<small>주 1~2회 권장</small></h3>' + stepsHtml([["물 채우기", "건조통을 비우고 물을 절반 채우기"], ["장착", "본체에 결합하고 도어 닫기"], ["시작", "[자동세척] 터치 (약 1시간)"], ["마무리", "HOT가 꺼지면 건조통을 꺼내 물 버리기"]]) + '<div class="m-tip"><span class="m-badge k-ok">팁</span>녹차 티백이나 커피 가루를 넣으면 냄새 완화에 효과적입니다. 철 수세미는 코팅이 벗겨지니 쓰지 않습니다.</div></div>';
-  h += '<div class="m-block"><h3>' + ic("filter", 30) + '탈취 필터 교체<small>교체 주기 3~4개월</small></h3>' + stepsHtml([["LED 점등", "교체 시기가 되면 [필터교체 3초] LED가 켜짐"], ["기존 필터 제거", "필터 커버를 열고 케이스째 꺼내 일반 쓰레기로 배출"], ["새 필터 장착", "필터 상단 스티커와 캡을 제거한 뒤 장착"], ["LED 리셋", "[필터교체 3초] 버튼을 3초 길게 눌러 LED 끄기"]]) + "</div>";
-  h += '<div class="m-block"><h3>' + ic("power", 30) + '편의 기능<small>고객이 자주 묻는 동작</small></h3><div class="m-hh"><div><b>보관 모드</b>장기간 쓰지 않을 때 전원을 연결해 둔 채 보관 (냄새 방지)</div><div><b>절전 기능</b>5분간 조작이 없으면 화면이 꺼지고 LED 미등만 켜짐</div><div><b>음소거 해제</b>[자동세척]을 3초 눌러 해제</div><div><b>빈 건조통 감지</b>건조통이 비었거나 없으면 동작하지 않음</div></div></div>';
+  h += '<div class="m-block m-item"><h3>' + ic("product", 30) + '기본 사용<small>처리 시간 보통 3~5시간</small></h3>' + stepsHtml([["투입", "도어를 열고 건조통 MAX선 아래로 넣기"], ["장착", "건조통 △를 기기 표시에 맞추고 MAX 글자가 앞을 보게 삽입"], ["시작", "도어를 닫고 [동작/정지] 터치"], ["완료", "HOT 표시가 꺼지면 꺼내서 배출 (직후는 뜨거우니 화상 주의)"]]) + '<div class="m-tip"><span class="m-badge k-nv">참고</span>동작 중 추가 투입은 OPEN 버튼 후 가능하지만, 시작 약 3시간 이후에는 하지 않습니다.</div></div>';
+  h += '<div class="m-block m-item"><h3>' + ic("drop", 30) + '세척 모드<small>주 1~2회 권장</small></h3>' + stepsHtml([["물 채우기", "건조통을 비우고 물을 절반 채우기"], ["장착", "본체에 결합하고 도어 닫기"], ["시작", "[자동세척] 터치 (약 1시간)"], ["마무리", "HOT가 꺼지면 건조통을 꺼내 물 버리기"]]) + '<div class="m-tip"><span class="m-badge k-ok">팁</span>녹차 티백이나 커피 가루를 넣으면 냄새 완화에 효과적입니다. 철 수세미는 코팅이 벗겨지니 쓰지 않습니다.</div></div>';
+  h += '<div class="m-block m-item"><h3>' + ic("filter", 30) + '탈취 필터 교체<small>교체 주기 3~4개월</small></h3>' + stepsHtml([["LED 점등", "교체 시기가 되면 [필터교체 3초] LED가 켜짐"], ["기존 필터 제거", "필터 커버를 열고 케이스째 꺼내 일반 쓰레기로 배출"], ["새 필터 장착", "필터 상단 스티커와 캡을 제거한 뒤 장착"], ["LED 리셋", "[필터교체 3초] 버튼을 3초 길게 눌러 LED 끄기"]]) + "</div>";
+  h += '<div class="m-block m-item"><h3>' + ic("power", 30) + '편의 기능<small>고객이 자주 묻는 동작</small></h3><div class="m-hh"><div><b>보관 모드</b>장기간 쓰지 않을 때 전원을 연결해 둔 채 보관 (냄새 방지)</div><div><b>절전 기능</b>5분간 조작이 없으면 화면이 꺼지고 LED 미등만 켜짐</div><div><b>음소거 해제</b>[자동세척]을 3초 눌러 해제</div><div><b>빈 건조통 감지</b>건조통이 비었거나 없으면 동작하지 않음</div></div></div>';
   h += '</div><div><div class="m-illus"><h3>설치 공간</h3>' + clearIllus() + "<p>배수 연결이나 공사가 필요 없는 프리스탠딩 방식입니다. 전원 연결만으로 사용합니다.</p></div>";
-  h += '<div class="m-block" style="margin-top:14px"><h3>' + ic("gear", 28) + '위생 관리</h3><div class="m-hh" style="grid-template-columns:1fr"><div><b>건조통</b>식기세척기 사용은 자제 (세라믹 코팅 수명)</div><div><b>도어 커버</b>가운데 노브를 당겨 분리해 중성세제로 세척, 완전히 말린 뒤 장착</div><div><b>물받이</b>우측 하단에서 당겨 빼 주기적으로 비우기 (미장착 시 냄새·누수 원인)</div><div><b>히터 단자</b>건조통 접촉 부위를 마른 수건이나 면봉으로 닦기</div></div></div></div></div>';
-  h += '<div class="m-note">' + ic("info", 38) + "<div><b>고장이 아닌 경우:</b> 작동이 끝났거나 대기 중에도 팬이 돌며 소리가 납니다. 음식물 부패를 막기 위해 30분마다 회전날이 자동으로 돌아갑니다. 베란다처럼 온도차가 큰 곳은 히터 오류 원인이 되어 권장하지 않습니다.</div></div>" + vRel(["PNhUrBQ56qs", "BPtNBxk532M", "K5diTeO6544", "xF3aSh1tWw8"]);
+  h += '<div class="m-block m-item" style="margin-top:14px"><h3>' + ic("gear", 28) + '위생 관리</h3><div class="m-hh" style="grid-template-columns:1fr"><div><b>건조통</b>식기세척기 사용은 자제 (세라믹 코팅 수명)</div><div><b>도어 커버</b>가운데 노브를 당겨 분리해 중성세제로 세척, 완전히 말린 뒤 장착</div><div><b>물받이</b>우측 하단에서 당겨 빼 주기적으로 비우기 (미장착 시 냄새·누수 원인)</div><div><b>히터 단자</b>건조통 접촉 부위를 마른 수건이나 면봉으로 닦기</div></div></div></div></div>';
+  h += '<div class="m-note m-item">' + ic("info", 38) + "<div><b>고장이 아닌 경우:</b> 작동이 끝났거나 대기 중에도 팬이 돌며 소리가 납니다. 음식물 부패를 막기 위해 30분마다 회전날이 자동으로 돌아갑니다. 베란다처럼 온도차가 큰 곳은 히터 오류 원인이 되어 권장하지 않습니다.</div></div>" + vRel(["PNhUrBQ56qs", "BPtNBxk532M", "K5diTeO6544", "xF3aSh1tWw8"]);
   return h;
 }
 function vIntake() {
   var h = mHead("상담 접수", "유베이스 상담원이 증상에 따라 접수 방식을 나눕니다");
-  h += '<div class="m-block"><h3>' + ic("headset", 30) + '1단계 공통: 정보 수집 <small>인사말은 연락처·응대 멘트에서 복사</small></h3><div class="m-hh"><div><b>구매 정보</b>구매 사이트(채널), 주문자 성함, 연락처</div><div><b>제품 정보</b>제품 시리얼 넘버(S/N)</div><div><b>물류 정보 (필수)</b>수거용 정품 박스 보유 여부</div></div></div>';
+  h += '<div class="m-block m-item"><h3>' + ic("headset", 30) + '1단계 공통: 정보 수집 <small>인사말은 연락처·응대 멘트에서 복사</small></h3><div class="m-hh"><div><b>구매 정보</b>구매 사이트(채널), 주문자 성함, 연락처</div><div><b>제품 정보</b>제품 시리얼 넘버(S/N)</div><div><b>물류 정보 (필수)</b>수거용 정품 박스 보유 여부</div></div></div>';
   h += '<div style="height:14px"></div>';
   h += '<div class="m-lane" style="--bc:var(--r-cu)"><div class="lh"><b>유형 A<br>즉시 접수</b><span>기능 마비와 시스템 에러</span></div><div class="lb">' +
     '<div class="m-ls">' + mRoleTag("ub", "유베이스") + "<b>대상 확인</b><span class=\"d\">전원 불능, 에러코드 전체(E001~E003) 표시</span></div>" +
@@ -991,7 +1096,7 @@ function vIntake() {
     '<div class="m-ls">' + mRoleTag("ub", "유베이스") + "<b>트러블슈팅 가이드로 1차 안내</b><span class=\"d\">증상별 해결과 에러코드 기준</span></div>" +
     '<div class="m-ls">' + mRoleTag("cu", "고객") + "<b>자가 조치</b><span class=\"d\">해결되면 상담 종결</span></div>" +
     '<div class="m-ls">' + mRoleTag("ub", "유베이스") + "<b>해결 안 되면 수거 안내</b><span class=\"d\">고객 명단을 정리해 기화 전용 메일로 전달</span></div></div></div>";
-  h += '<div class="m-block" style="margin-top:14px"><h3>' + ic("camera", 30) + '카톡 촬영 가이드<small>상담원이 그대로 안내합니다</small></h3><div class="m-shoot" style="margin-top:0"><div>' + ic("chat", 34) + "<span><b>소음</b>기계 옆에서 10초간 소리가 잘 들리게 찍어주세요.</span></div><div>" + ic("drop", 34) + "<span><b>누수·파손</b>물이 새는 부위나 파손된 부분을 사진으로 찍어주세요.</span></div><div>" + ic("doc", 34) + "<span><b>시리얼 번호</b>제품 뒤쪽(또는 하단) 스티커를 글씨가 잘 보이게 찍어주세요.</span></div></div></div>";
+  h += '<div class="m-block m-item" style="margin-top:14px"><h3>' + ic("camera", 30) + '카톡 촬영 가이드<small>상담원이 그대로 안내합니다</small></h3><div class="m-shoot" style="margin-top:0"><div>' + ic("chat", 34) + "<span><b>소음</b>기계 옆에서 10초간 소리가 잘 들리게 찍어주세요.</span></div><div>" + ic("drop", 34) + "<span><b>누수·파손</b>물이 새는 부위나 파손된 부분을 사진으로 찍어주세요.</span></div><div>" + ic("doc", 34) + "<span><b>시리얼 번호</b>제품 뒤쪽(또는 하단) 스티커를 글씨가 잘 보이게 찍어주세요.</span></div></div></div>";
   return h;
 }
 function vInfo() {
@@ -1000,7 +1105,7 @@ function vInfo() {
   h += '<div class="m-spec">' + sp.map(function (s) { return '<div class="m-sp m-item"><b>' + s[0] + "<small>" + s[1] + "</small></b><span>" + s[2] + "</span><em>" + s[3] + "</em></div>"; }).join("") + "</div>";
   h += '<div class="m-info"><div>';
   h += '<div class="m-block m-item"><h3>' + ic("badge", 30) + '정품 등록<small>등록하면 무상 보증 +1년 (총 2년)</small></h3><div class="m-tip" style="margin-top:0"><span>공식몰 정품 인증 페이지에서 시리얼 번호(제품 뒤쪽 또는 하단 스티커)로 등록합니다.</span><span class="lnks">' + lnk(U_SN, "정품 인증 페이지") + lnk(U_KAKAO, "카카오 채널") + '</span></div><div class="m-tip"><span class="m-badge k-nv">안내</span>구매 후 정해진 등록 기간은 없습니다 (제이엠더블유와 동일)</div></div>';
-  h += '<div class="m-block m-item"><h3>' + ic("star", 30) + '제품 특징</h3><div class="m-hh"><div><b>예열 40초</b>빠른 예열</div><div><b>복합 악취 99% 제거</b>탈취 필터</div><div><b>세척 60분</b>불림 40분 + 세척 20분</div><div><b>필터 알림 1,800시간</b>사용 시간 기준</div><div><b>살균 99.999%</b>자료 기준</div><div><b>전기요금 1시간 약 9원</b>추정</div></div></div>';
+  h += '<div class="m-block m-item"><h3>' + ic("star", 30) + '제품 특징</h3><div class="m-hh"><div><b>예열 40초</b>빠른 예열</div><div><b>복합 악취 99% 제거</b>탈취 필터</div><div><b>세척 60분</b>불림 40분 + 세척 20분</div><div><b>필터 알림 1,800시간</b>사용 시간 기준</div><div><b>살균 99.999%</b>자료 기준</div><div><b>전기요금 1시간 약 9원</b>추정</div><div><b>국내 최소 폭 18cm</b>초슬림 디자인</div><div><b>풀커버 히팅</b>바닥면 히팅 플레이트 150℃ 직접 가열</div><div><b>V-CUT 분쇄</b>맷돌형 분쇄와 V컷 블레이드, 감량률 95%</div><div><b>듀얼 코팅 건조통</b>외부 테프론(화이트) + 내부 세라믹(블랙)</div><div><b>트리플 탈취 케어</b>특허 유로 설계 + 800g 활성탄 필터</div><div><b>인텔리전스 케어</b>온습도 듀얼 센서로 처리 시간 자동 산출</div><div><b>인비저블 디스플레이</b>전면 컨트롤, 야간 눈부심 방지</div><div><b>시그니처 멜로디</b>비프음 대신 안내음</div></div></div>';
   h += "</div><div>";
   h += '<div class="m-block m-item"><h3>' + ic("doc", 30) + '보조금 서류 안내<small>지원 여부, 금액, 서류는 지자체마다 다름</small></h3><div class="m-hh"><div><b>KC 안전인증서</b>PDF</div><div><b>품질인증(Q-MARK) 지정서</b>PDF</div><div><b>제품 사양서</b>보조금 지원 서류, JPEG</div></div><div class="m-tip"><span class="m-badge k-nv">다운로드</span>공식몰 게시글에서 세 파일을 받을 수 있습니다.<span class="lnks">' + lnk(U_BD, "보조금 지원 서류 발급 안내") + '</span></div><dl class="m-dl" style="margin-top:10px"><div class="m-ct"><dt>온라인몰 구매</dt><dd>네이버, 쿠팡, 11번가, G마켓, 카카오 등은 각 사이트 주문내역에서 영수증·거래명세서 출력</dd></div><div class="m-ct"><dt>공식몰 무통장</dt><dd>로그인 → MYPAGE → 주문/배송조회 → 주문상세 → 주문내역 캡처</dd></div><div class="m-ct"><dt>공식몰 카드</dt><dd>같은 경로에서 카드매출전표 인쇄</dd></div><div class="m-ct"><dt>부산물 배출</dt><dd>음식물 종량제 봉투 또는 RFID 수거함이 원칙, 지자체 조례에 따라 다름</dd></div></dl><div class="m-tip"><span class="m-badge k-nv">유의</span>보조금 신청 시 구매자와 신청자 정보가 일치해야 하며, 공식몰 외 구매는 구매처에서 영수증을 발급합니다.</div></div>';
   h += '<div class="m-block m-item"><h3>' + ic("alert", 30) + '고객 안내 기준<small>확정</small></h3><div class="m-tip" style="margin-top:0">건조통은 분리할 수 있습니다. 다만 건조통 분쇄날은 분리할 수 없습니다.</div><div class="m-tip">소음 수치는 평균 33.1dB로 안내합니다.</div></div>';
@@ -1037,7 +1142,10 @@ function vRel(ids) { return '<div class="m-vrow">관련 영상' + ids.map(functi
 
 var MVIEW = { vid: vVid, err: vErr, sym: vSym, food: vFood, use: vUse, intake: vIntake, info: vInfo, contact: vContact };
 var MTEXT = {};
-function mText(id) { if (!MTEXT[id]) { var d = document.createElement("div"); d.innerHTML = MVIEW[id](); MTEXT[id] = d.textContent.toLowerCase(); } return MTEXT[id]; }
+var MITEMS = {};
+function mBuild(id) { var d = document.createElement("div"); d.innerHTML = MVIEW[id](); MTEXT[id] = d.textContent.toLowerCase(); MITEMS[id] = Array.prototype.map.call(d.querySelectorAll(".m-item"), function (e) { return e.textContent.toLowerCase(); }); }
+function mText(id) { if (!MTEXT[id]) mBuild(id); return MTEXT[id]; }
+function mItems(id) { if (!MITEMS[id]) mBuild(id); return MITEMS[id]; }
 function mcat(id) { return MCATS.filter(function (c) { return c.id === id; })[0]; }
 function renderManual() {
   var q = $("#q").value.trim().toLowerCase(), sec = secOf(state.cat), cats = SECS[sec];
@@ -1051,16 +1159,11 @@ function renderManual() {
     }).join("") + "</div>" : "") + '<section class="m-panel" role="tabpanel"></section>';
   }
   $$("#stageM .m-cat").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.cat === state.cat ? "true" : "false"); b.classList.toggle("dim", !!q && mText(b.dataset.cat).indexOf(q) < 0); });
-  $$(".seg button").forEach(function (b) { var s = SECS[b.dataset.v]; b.classList.toggle("dim", !!q && !!s && !s.some(function (id) { return mText(id).indexOf(q) > -1; })); });
+  $$(".seg button").forEach(function (b) { var s = SECS[b.dataset.v]; b.setAttribute("aria-selected", b.dataset.v === sec ? "true" : "false"); b.classList.toggle("dim", !!q && !!s && !s.some(function (id) { return mText(id).indexOf(q) > -1; })); });
   $("#stageM .m-panel").innerHTML = MVIEW[state.cat]();
   if (q) $$("#stageM .m-item").forEach(function (el) { el.classList.toggle("dim", el.textContent.toLowerCase().indexOf(q) < 0); });
   try { history.replaceState(null, "", "#m-" + state.cat); } catch (e) {}
   fitStage();
-}
-function manualSearch() {
-  var q = $("#q").value.trim().toLowerCase();
-  if (q && mText(state.cat).indexOf(q) < 0) { var hit = MCATS.filter(function (c) { return mText(c.id).indexOf(q) > -1; })[0]; if (hit) { state.cat = hit.id; view("m", true); } }
-  renderManual();
 }
 
 /* ---------- VOC dashboard (VOC 시트 2026-08 ~ 11/03 집계, 목업) ---------- */
